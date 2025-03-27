@@ -7,14 +7,20 @@ from tqdm import tqdm
 import tiktoken
 
 def load_env():
-    load_dotenv(dotenv_path=".env")
+    # .env1 파일 위치를 명시적으로 지정합니다.
+    dotenv_path = r"C:\Users\tpdud\code\.env1"
+    load_dotenv(dotenv_path=dotenv_path)
     openai.api_key = os.getenv("OPENAI_API_KEY")
     if not openai.api_key:
         print("OPENAI API KEY NOT FOUND. CHECK YOUR .env FILE")
         return None
-    
+
 def load_data(file_path):
-    return pd.read_csv(file_path)[["ID", "Body", "Link"]]
+    # CSV 파일 헤더: title, date, link, press, body, id
+    # 'id', 'body', 'link' 컬럼을 각각 'ID', 'Body', 'Link'로 재명명하여 사용합니다.
+    df = pd.read_csv(file_path)
+    df.rename(columns={'id': 'ID', 'body': 'Body', 'link': 'Link'}, inplace=True)
+    return df[['ID', 'Body', 'Link']]
 
 def round_embedding(embedding, decimal=6):
     if embedding is None:
