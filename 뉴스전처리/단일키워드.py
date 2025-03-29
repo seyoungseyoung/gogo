@@ -25,8 +25,8 @@ def process_with_cpu(df, target_words, must_keep_keywords):
     results = []
     for _, row in tqdm(df.iterrows(), total=len(df), desc="Processing articles"):
         combined_text = ""
-        if pd.notnull(row.get('body', None)):
-            combined_text += row['body'] + " "
+        if pd.notnull(row.get('Summarization', None)):
+            combined_text += row['Summarization'] + " "
         if pd.notnull(row.get('title', None)):
             combined_text += row['title']
 
@@ -59,8 +59,8 @@ all_discard = []
 
 # 반복 처리할 연도 범위
 for year in range(2019, 2026):
-    file_name = f'005930_{year}_filtered.csv'
-    file_path = os.path.join(r'C:\Users\tpdud\code\gogo\Database\processed', file_name)
+    file_name = f'005930_{year} (1).csv'
+    file_path = os.path.join(r'C:\Users\tpdud\code\gogo\Database\summary', file_name)
 
     if not os.path.exists(file_path):
         print(f"파일이 존재하지 않음: {file_path}")
