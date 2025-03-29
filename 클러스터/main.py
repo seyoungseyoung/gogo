@@ -12,7 +12,7 @@ def create_parser() -> ArgumentParser:
                         default=r"C:\Users\tpdud\code\gogo\클러스터\reference_1.json",
                         help="Path to the pre-generated reference JSON file.")
     parser.add_argument('-d', '--embedding_directory', type=str, required=False,
-                        default=r"C:\Users\tpdud\code\gogo\Database\embedding",
+                        default=r"C:\Users\tpdud\code\gogo\Database\summary\전처리 후",
                         help="Directory containing checkpoint embedding JSON files (e.g. checkpoint_2019.json, ...).")
     parser.add_argument('-m', '--metric', choices=['cosine', 'euclidean'], required=False, default='euclidean',
                         help="Distance metric for HDBSCAN clustering.")

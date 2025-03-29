@@ -15,7 +15,7 @@ def main():
     minimum_sample = args.minimum_sample  # 예: 200개
 
     # 입력 파일이 있는 경로 (체크포인트 파일)
-    embedding_path = r"C:\Users\tpdud\code\gogo\Database\embedding"
+    embedding_path = r"C:\Users\tpdud\code\gogo\Database\summary\전처리 후"
     # "checkpoint_"로 시작하는 파일들만 선택
     file_dirs = [
         os.path.join(embedding_path, file)
