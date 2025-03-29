@@ -53,13 +53,13 @@ def shrink_embeddings(input_json_path):
     valid_data = []
     valid_idx = 0
     for i, row in df_original.iterrows():
-        emb = row['embedding']
+        emb = row['Embedding']
         if emb is not None and len(emb) == hparams["INPUT_DIM"]:
             # ID is already a string
             id_val = row['ID']
             record = {
                 "ID": id_val,
-                "embedding": shrunk_list[valid_idx]
+                "Embedding": shrunk_list[valid_idx]
             }
             valid_data.append(record)
             valid_idx += 1
@@ -75,6 +75,6 @@ def shrink_embeddings(input_json_path):
     print(f"Shape: {z_cpu.shape}")
 
 if __name__ == "__main__":
-    # Example usage for the 2020 file
-    input_path = "../../../Database/Embedding/samsungE_2020_processed_embedded.json"
-    shrink_embeddings(input_path)
+    for year in range(2019, 2026):
+        input_path = f"C:/Users/tpdud/code/gogo/Database/summary/전처리 후/checkpoint_005930_{year}_filtered.json"
+        shrink_embeddings(input_path)
