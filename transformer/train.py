@@ -244,7 +244,7 @@ def train_main(file_path):
     return model
 
 
-def get_model(input_size=5, input_steps=40, news_dim=640):
+def get_model(input_size=4, input_steps=40, news_dim=640):
     config = basic_config()
     d_model = config['hidden_dim']
     num_layers = config['num_layers']
@@ -372,58 +372,40 @@ def get_data_eval(file_path):
     return torch.from_numpy(X_train_news_seq), df, torch.from_numpy(X_train_nonnews_seq)
 
 if __name__ == "__main__":
-    # file_path = "../../../Database/Local/Final/scaled_stock_data_with_news_2020.csv"
-    # file_path = "../../../Database/Local/Final/merged_picked_10_full.csv"
-    file_path = "C:/Users/tpdud/code/gogo/merge/final_shrink_128.csv"
+    file_path = "/home/kororu/seyoung/gogo/merge/final_shrink_128.csv"
 
-    # 학습 시키고 싶으면 아래 두줄은 주석 처리 X, 학습이 아니라면 그냥 무시해도 됩니당
     trained_model = train_main(file_path)
     torch.save(trained_model.state_dict(), "transformer_full_yonhaponly.pt")
-    
+
     x_train_news_seq, df, x_train_nonnews_seq = get_data_eval(file_path)
-    
 
     trained_model = get_model()
     trained_model.load_state_dict(torch.load("transformer_full_yonhaponly.pt"))
     trained_model = trained_model.to('cuda')
     mlp_model = trained_model.transformer_encoder.layers[3].mlp
     mlp_model.eval()
-    
-    # print(x_train_news_seq[1, 39, 0])
-    # print(df['News_01_001'].iloc[40])
 
     all_results = []
 
     for num_index in tqdm(range(len(df) - 40 - 1)):
-        
-        # 1) Select the sample for this index and send to GPU
-        x_sample = x_train_news_seq[num_index, :, :].to('cuda')
-        # 2) Get the date for this sample
-        # sample_date = df['Date'][num_index]
-        date_val = df['Date'].iloc[num_index+40+1]
-        
-        # 3) Compute zero indices for each sub-block of the MLP
+        x_sample = x_train_news_seq[num_index, :, :].to('cuda')  # [40, 640]
+        x_sample = x_sample.view(1, -1)  # [1, 25600]
+        date_val = df['Date'].iloc[num_index + 40 + 1]
+
         first_linear = mlp_model[0:2](x_sample)
         first_zero_indices = torch.nonzero(first_linear == 0, as_tuple=True)
 
         second_linear = mlp_model[0:4](x_sample)
         second_zero_indices = torch.nonzero(second_linear == 0, as_tuple=True)
 
-        # third_linear = mlp_model[0:6](x_sample)
-        # third_zero_indices = torch.nonzero(third_linear == 0, as_tuple=True)
-
         final_lst_abs = []
         final_lst_sum = []
 
-        # 4) Mask out 10 segments (each size 128) in x_sample
-        for i in range(10):
-            mask = torch.zeros_like(x_sample, device=x_sample.device)
-            mask[:-1, :] = 1
-            mask[:, i * 128 : (i + 1) * 128] = 1
-
+        for i in range(5):
+            mask = torch.ones_like(x_sample, device=x_sample.device)
+            mask[:, i * 128:(i + 1) * 128] = 0
             x_modified = x_sample * mask
 
-            # Pass through each layer, re-zeroing the previously zeroed values
             output_1 = mlp_model[0](x_modified)
             output_1[first_zero_indices] = 0
 
@@ -431,17 +413,12 @@ if __name__ == "__main__":
             output_2[second_zero_indices] = 0
 
             output_3 = mlp_model[4](output_2)
-            # output_3[third_zero_indices] = 0
-
-            # output_4 = mlp_model[6](output_3)
 
             final_lst_abs.append(round(torch.sum(torch.abs(output_3)).item(), 2))
             final_lst_sum.append(round(torch.sum(output_3).item(), 2))
 
-        # Sort descending by absolute value (+1 because np.argsort is zero-based)
         sorted_indices = (np.argsort(final_lst_sum)[::-1] + 1).tolist()
-        
-        # Store results for this row
+
         all_results.append({
             'Date': date_val,
             'Final_Abs_Values': final_lst_abs,
@@ -449,9 +426,9 @@ if __name__ == "__main__":
             'Sorted_List': sorted_indices
         })
 
-    # Make a DataFrame with the collected results
     df_results = pd.DataFrame(all_results)
     df_results.to_csv('transformer_all_results.csv', index=False)
+
 
 
     
